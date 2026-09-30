@@ -3,18 +3,17 @@ import react from "@vitejs/plugin-react";
 
 /**
  * Content-Security-Policy restritiva para PRODUÇÃO.
- * O app não carrega recursos externos, não faz requests de rede e não
- * usa scripts inline, então a política pode ser bastante fechada.
- * 'unsafe-inline' em style-src é necessário porque o app usa alguns
- * estilos inline (ex.: input de arquivo oculto) e o Vite pode emitir
- * estilos críticos inline.
+ * O app só faz requisições de rede para o Supabase (auth + banco), por HTTPS
+ * e WebSocket (realtime), então liberamos apenas esses domínios em connect-src.
+ * 'unsafe-inline' em style-src é necessário porque o Vite pode emitir estilos
+ * críticos inline e o app usa alguns estilos inline.
  */
 const PROD_CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "font-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
