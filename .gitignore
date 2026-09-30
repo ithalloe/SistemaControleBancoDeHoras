@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+
+# Variáveis de ambiente (contêm URL/chave do Supabase) - não versionar
+.env
+.env.*
+!.env.example
