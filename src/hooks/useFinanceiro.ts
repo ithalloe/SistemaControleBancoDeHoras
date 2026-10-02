@@ -10,15 +10,23 @@ import type {
 import {
   adicionarCompra,
   adicionarItem,
+  adicionarUnidade,
   atualizarStatusCompra,
   carregarFinanceiro,
   registrarMovimentacao,
   removerCompra,
   removerItem,
+  removerUnidade,
   salvarOrcamento,
 } from "../lib/repoFinanceiro";
 
-const VAZIO: FinanceiroState = { orcamentos: [], compras: [], itens: [], movimentacoes: [] };
+const VAZIO: FinanceiroState = {
+  unidades: [],
+  orcamentos: [],
+  compras: [],
+  itens: [],
+  movimentacoes: [],
+};
 
 /**
  * Estado do módulo financeiro + estoque, persistido no Supabase.
@@ -45,13 +53,34 @@ export function useFinanceiro() {
     void recarregar();
   }, [recarregar]);
 
+  /* ----- Unidades (CNPJs) ----- */
+  const criarUnidade = useCallback(async (nome: string, cnpj: string) => {
+    const salva = await adicionarUnidade(nome, cnpj);
+    setState((prev) => ({ ...prev, unidades: [...prev.unidades, salva] }));
+    return salva;
+  }, []);
+
+  const excluirUnidade = useCallback(async (id: string) => {
+    await removerUnidade(id);
+    // o cascade do banco remove orçamentos/compras/itens da unidade; refletimos localmente
+    setState((prev) => ({
+      ...prev,
+      unidades: prev.unidades.filter((u) => u.id !== id),
+      orcamentos: prev.orcamentos.filter((o) => o.unidadeId !== id),
+      compras: prev.compras.filter((c) => c.unidadeId !== id),
+      itens: prev.itens.filter((i) => i.unidadeId !== id),
+    }));
+  }, []);
+
   /* ----- Orçamento (verba do mês) ----- */
   const definirOrcamento = useCallback(async (o: Omit<Orcamento, "id">) => {
     const salvo = await salvarOrcamento(o);
     setState((prev) => {
-      const existe = prev.orcamentos.some((x) => x.competencia === salvo.competencia);
+      const mesma = (x: Orcamento) =>
+        x.unidadeId === salvo.unidadeId && x.competencia === salvo.competencia;
+      const existe = prev.orcamentos.some(mesma);
       const orcamentos = existe
-        ? prev.orcamentos.map((x) => (x.competencia === salvo.competencia ? salvo : x))
+        ? prev.orcamentos.map((x) => (mesma(x) ? salvo : x))
         : [...prev.orcamentos, salvo];
       return { ...prev, orcamentos };
     });
@@ -115,6 +144,8 @@ export function useFinanceiro() {
     loading,
     error,
     recarregar,
+    criarUnidade,
+    excluirUnidade,
     definirOrcamento,
     novaCompra,
     mudarStatusCompra,

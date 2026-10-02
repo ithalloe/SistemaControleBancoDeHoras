@@ -1,13 +1,13 @@
 -- ============================================================
 -- Módulo Financeiro (verba mensal + compras) e Estoque
+-- Com suporte a múltiplas UNIDADES (CNPJs: Fundamental, Médio, etc.)
 -- Aplicar no Supabase: Dashboard > SQL Editor > cole e execute.
 --
--- Pode ser executado depois do schema.sql principal. Usa os mesmos
--- padrões: RLS por usuário (user_id = auth.uid()) e trigger updated_at.
+-- Verba, compras e estoque são separados por unidade. Cada linha
+-- pertence a um usuário (RLS) e a uma unidade (unidade_id).
 --
 -- Pré-requisito: a função public.set_updated_at() já existe (criada no
--- schema.sql principal). Caso rode isto isoladamente, a função é recriada
--- abaixo de forma idempotente.
+-- schema.sql principal). É recriada abaixo de forma idempotente.
 -- ============================================================
 
 create or replace function public.set_updated_at()
@@ -20,24 +20,21 @@ begin
 end;
 $$;
 
--- ---------- ORÇAMENTOS (verba por mês) ----------
--- competencia: primeiro dia do mês de referência (ex.: 2026-02-01).
-create table if not exists public.orcamentos (
+-- ---------- UNIDADES (cada CNPJ: Fundamental, Médio...) ----------
+create table if not exists public.unidades (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users (id) on delete cascade,
-  competencia date not null,
-  valor       numeric(14, 2) not null default 0,
-  obs         text not null default '',
+  nome        text not null,
+  cnpj        text not null default '',
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
-  -- uma verba por mês por usuário
-  unique (user_id, competencia)
+  updated_at  timestamptz not null default now()
 );
 
--- ---------- ITENS DE ESTOQUE ----------
+-- ---------- ITENS DE ESTOQUE (por unidade) ----------
 create table if not exists public.itens_estoque (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users (id) on delete cascade,
+  unidade_id    uuid not null references public.unidades (id) on delete cascade,
   nome          text not null,
   categoria     text not null default '',
   unidade       text not null default 'un',
@@ -47,12 +44,26 @@ create table if not exists public.itens_estoque (
   updated_at    timestamptz not null default now()
 );
 
--- ---------- COMPRAS ----------
--- Uma compra abate da verba do mês correspondente à sua data.
--- Pode, opcionalmente, estar ligada a um item de estoque (abastece-o).
+-- ---------- ORÇAMENTOS (verba por unidade por mês) ----------
+-- competencia: primeiro dia do mês de referência (ex.: 2026-02-01).
+create table if not exists public.orcamentos (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  unidade_id  uuid not null references public.unidades (id) on delete cascade,
+  competencia date not null,
+  valor       numeric(14, 2) not null default 0,
+  obs         text not null default '',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  -- uma verba por unidade por mês
+  unique (unidade_id, competencia)
+);
+
+-- ---------- COMPRAS (por unidade) ----------
 create table if not exists public.compras (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users (id) on delete cascade,
+  unidade_id    uuid not null references public.unidades (id) on delete cascade,
   data          date not null,
   descricao     text not null,
   fornecedor    text not null default '',
@@ -68,8 +79,7 @@ create table if not exists public.compras (
 );
 
 -- ---------- MOVIMENTAÇÕES DE ESTOQUE ----------
--- Entradas (compra recebida) e saídas (uso/entrega). quantidade sempre > 0;
--- o tipo indica se soma ou subtrai do item.
+-- A unidade é herdada do item (item_id). quantidade sempre > 0.
 create table if not exists public.movimentacoes_estoque (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users (id) on delete cascade,
@@ -86,19 +96,35 @@ alter table public.config
   add column if not exists dia_corte_compra integer not null default 24;
 
 -- ---------- Índices ----------
-create index if not exists idx_orcamentos_user on public.orcamentos (user_id, competencia desc);
-create index if not exists idx_compras_user on public.compras (user_id, data desc);
-create index if not exists idx_itens_estoque_user on public.itens_estoque (user_id, nome);
+create index if not exists idx_unidades_user on public.unidades (user_id, nome);
+create index if not exists idx_orcamentos_unidade on public.orcamentos (unidade_id, competencia desc);
+create index if not exists idx_compras_unidade on public.compras (unidade_id, data desc);
+create index if not exists idx_itens_estoque_unidade on public.itens_estoque (unidade_id, nome);
 create index if not exists idx_mov_estoque_user on public.movimentacoes_estoque (user_id, data desc);
 create index if not exists idx_mov_estoque_item on public.movimentacoes_estoque (item_id);
 
 -- ============================================================
 -- Row Level Security
 -- ============================================================
+alter table public.unidades enable row level security;
 alter table public.orcamentos enable row level security;
 alter table public.itens_estoque enable row level security;
 alter table public.compras enable row level security;
 alter table public.movimentacoes_estoque enable row level security;
+
+-- UNIDADES
+drop policy if exists "unidades_select_own" on public.unidades;
+create policy "unidades_select_own" on public.unidades
+  for select using (auth.uid() = user_id);
+drop policy if exists "unidades_insert_own" on public.unidades;
+create policy "unidades_insert_own" on public.unidades
+  for insert with check (auth.uid() = user_id);
+drop policy if exists "unidades_update_own" on public.unidades;
+create policy "unidades_update_own" on public.unidades
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "unidades_delete_own" on public.unidades;
+create policy "unidades_delete_own" on public.unidades
+  for delete using (auth.uid() = user_id);
 
 -- ORÇAMENTOS
 drop policy if exists "orcamentos_select_own" on public.orcamentos;
@@ -156,6 +182,10 @@ create policy "mov_delete_own" on public.movimentacoes_estoque
 -- ============================================================
 -- Triggers updated_at
 -- ============================================================
+drop trigger if exists trg_unidades_updated on public.unidades;
+create trigger trg_unidades_updated before update on public.unidades
+  for each row execute function public.set_updated_at();
+
 drop trigger if exists trg_orcamentos_updated on public.orcamentos;
 create trigger trg_orcamentos_updated before update on public.orcamentos
   for each row execute function public.set_updated_at();
@@ -167,3 +197,21 @@ create trigger trg_itens_estoque_updated before update on public.itens_estoque
 drop trigger if exists trg_compras_updated on public.compras;
 create trigger trg_compras_updated before update on public.compras
   for each row execute function public.set_updated_at();
+
+-- ============================================================
+-- Dados iniciais: cria as duas unidades padrão para o usuário logado,
+-- caso ainda não existam. (Execute logado; usa auth.uid().)
+-- ============================================================
+insert into public.unidades (user_id, nome)
+select auth.uid(), 'Fundamental'
+where auth.uid() is not null
+  and not exists (
+    select 1 from public.unidades where user_id = auth.uid() and nome = 'Fundamental'
+  );
+
+insert into public.unidades (user_id, nome)
+select auth.uid(), 'Médio'
+where auth.uid() is not null
+  and not exists (
+    select 1 from public.unidades where user_id = auth.uid() and nome = 'Médio'
+  );

@@ -10,6 +10,7 @@ import {
 import { Alertas } from "./Alertas";
 
 interface Props {
+  unidadeId: string;
   orcamentos: Orcamento[];
   compras: Compra[];
   mesAtual: string; // YYYY-MM
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function FinanceiroView({
+  unidadeId,
   orcamentos,
   compras,
   mesAtual,
@@ -42,7 +44,12 @@ export function FinanceiroView({
     }
     setSalvando(true);
     try {
-      await onDefinirVerba({ competencia: competenciaParaISO(mesAtual), valor: n, obs: "" });
+      await onDefinirVerba({
+        unidadeId,
+        competencia: competenciaParaISO(mesAtual),
+        valor: n,
+        obs: "",
+      });
     } catch {
       alert("Não foi possível salvar a verba.");
     } finally {

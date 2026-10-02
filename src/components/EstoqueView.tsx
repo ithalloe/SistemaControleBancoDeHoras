@@ -5,6 +5,7 @@ import { fmtDataBR, hoje } from "../lib/tempo";
 import { Alertas } from "./Alertas";
 
 interface Props {
+  unidadeId: string;
   itens: ItemEstoque[];
   movimentacoes: Movimentacao[];
   onNovoItem: (i: Omit<ItemEstoque, "id">) => Promise<ItemEstoque>;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function EstoqueView({
+  unidadeId,
   itens,
   movimentacoes,
   onNovoItem,
@@ -36,6 +38,7 @@ export function EstoqueView({
     setSalvando(true);
     try {
       await onNovoItem({
+        unidadeId,
         nome: nome.trim(),
         categoria: categoria.trim(),
         unidade: unidade.trim() || "un",

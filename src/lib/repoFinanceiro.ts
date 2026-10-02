@@ -6,20 +6,28 @@ import type {
   Orcamento,
   StatusCompra,
   TipoMovimentacao,
+  Unidade,
 } from "../types";
 import { supabase } from "./supabase";
 
 /* ------------------------------------------------------------------ *
  * Linhas do banco (snake_case)
  * ------------------------------------------------------------------ */
+interface UnidadeRow {
+  id: string;
+  nome: string;
+  cnpj: string;
+}
 interface OrcamentoRow {
   id: string;
+  unidade_id: string;
   competencia: string;
   valor: number | string;
   obs: string;
 }
 interface CompraRow {
   id: string;
+  unidade_id: string;
   data: string;
   descricao: string;
   fornecedor: string;
@@ -32,6 +40,7 @@ interface CompraRow {
 }
 interface ItemRow {
   id: string;
+  unidade_id: string;
   nome: string;
   categoria: string;
   unidade: string;
@@ -56,12 +65,22 @@ function toNum(v: number | string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function rowToUnidade(r: UnidadeRow): Unidade {
+  return { id: r.id, nome: r.nome, cnpj: r.cnpj };
+}
 function rowToOrcamento(r: OrcamentoRow): Orcamento {
-  return { id: r.id, competencia: r.competencia, valor: toNum(r.valor), obs: r.obs };
+  return {
+    id: r.id,
+    unidadeId: r.unidade_id,
+    competencia: r.competencia,
+    valor: toNum(r.valor),
+    obs: r.obs,
+  };
 }
 function rowToCompra(r: CompraRow): Compra {
   return {
     id: r.id,
+    unidadeId: r.unidade_id,
     data: r.data,
     descricao: r.descricao,
     fornecedor: r.fornecedor,
@@ -78,6 +97,7 @@ function rowToCompra(r: CompraRow): Compra {
 function rowToItem(r: ItemRow): ItemEstoque {
   return {
     id: r.id,
+    unidadeId: r.unidade_id,
     nome: r.nome,
     categoria: r.categoria,
     unidade: r.unidade,
@@ -106,24 +126,46 @@ async function requireUserId(): Promise<string> {
  * Carregar tudo do módulo financeiro/estoque
  * ------------------------------------------------------------------ */
 export async function carregarFinanceiro(): Promise<FinanceiroState> {
-  const [orcRes, compRes, itensRes, movRes] = await Promise.all([
+  const [uniRes, orcRes, compRes, itensRes, movRes] = await Promise.all([
+    supabase.from("unidades").select("*").order("nome", { ascending: true }),
     supabase.from("orcamentos").select("*").order("competencia", { ascending: false }),
     supabase.from("compras").select("*").order("data", { ascending: false }),
     supabase.from("itens_estoque").select("*").order("nome", { ascending: true }),
     supabase.from("movimentacoes_estoque").select("*").order("data", { ascending: false }),
   ]);
 
+  if (uniRes.error) throw uniRes.error;
   if (orcRes.error) throw orcRes.error;
   if (compRes.error) throw compRes.error;
   if (itensRes.error) throw itensRes.error;
   if (movRes.error) throw movRes.error;
 
   return {
+    unidades: (uniRes.data as UnidadeRow[]).map(rowToUnidade),
     orcamentos: (orcRes.data as OrcamentoRow[]).map(rowToOrcamento),
     compras: (compRes.data as CompraRow[]).map(rowToCompra),
     itens: (itensRes.data as ItemRow[]).map(rowToItem),
     movimentacoes: (movRes.data as MovRow[]).map(rowToMov),
   };
+}
+
+/* ------------------------------------------------------------------ *
+ * Unidades (CNPJs)
+ * ------------------------------------------------------------------ */
+export async function adicionarUnidade(nome: string, cnpj: string): Promise<Unidade> {
+  const user_id = await requireUserId();
+  const { data, error } = await supabase
+    .from("unidades")
+    .insert({ user_id, nome, cnpj })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return rowToUnidade(data as UnidadeRow);
+}
+
+export async function removerUnidade(id: string): Promise<void> {
+  const { error } = await supabase.from("unidades").delete().eq("id", id);
+  if (error) throw error;
 }
 
 /* ------------------------------------------------------------------ *
@@ -134,8 +176,14 @@ export async function salvarOrcamento(o: Omit<Orcamento, "id">): Promise<Orcamen
   const { data, error } = await supabase
     .from("orcamentos")
     .upsert(
-      { user_id, competencia: o.competencia, valor: o.valor, obs: o.obs },
-      { onConflict: "user_id,competencia" }
+      {
+        user_id,
+        unidade_id: o.unidadeId,
+        competencia: o.competencia,
+        valor: o.valor,
+        obs: o.obs,
+      },
+      { onConflict: "unidade_id,competencia" }
     )
     .select("*")
     .single();
@@ -152,6 +200,7 @@ export async function adicionarCompra(c: Omit<Compra, "id">): Promise<Compra> {
     .from("compras")
     .insert({
       user_id,
+      unidade_id: c.unidadeId,
       data: c.data,
       descricao: c.descricao,
       fornecedor: c.fornecedor,
@@ -187,6 +236,7 @@ export async function adicionarItem(i: Omit<ItemEstoque, "id">): Promise<ItemEst
     .from("itens_estoque")
     .insert({
       user_id,
+      unidade_id: i.unidadeId,
       nome: i.nome,
       categoria: i.categoria,
       unidade: i.unidade,

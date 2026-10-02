@@ -52,8 +52,17 @@ export interface AppState {
 
 /* ===================== Financeiro + Estoque ===================== */
 
+export interface Unidade {
+  id: string;
+  /** Nome da unidade / CNPJ (ex.: "Fundamental", "Médio") */
+  nome: string;
+  cnpj: string;
+}
+
 export interface Orcamento {
   id: string;
+  /** Unidade (CNPJ) a que a verba pertence */
+  unidadeId: string;
   /** Mês de competência, ISO YYYY-MM-DD (primeiro dia do mês) */
   competencia: string;
   valor: number;
@@ -64,6 +73,8 @@ export type StatusCompra = "solicitada" | "comprada" | "recebida" | "cancelada";
 
 export interface Compra {
   id: string;
+  /** Unidade (CNPJ) a que a compra pertence */
+  unidadeId: string;
   /** ISO YYYY-MM-DD */
   data: string;
   descricao: string;
@@ -79,8 +90,11 @@ export interface Compra {
 
 export interface ItemEstoque {
   id: string;
+  /** Unidade (CNPJ) a que o item pertence */
+  unidadeId: string;
   nome: string;
   categoria: string;
+  /** Unidade de medida (un, cx, m...) */
   unidade: string;
   quantidade: number;
   estoqueMin: number;
@@ -99,6 +113,7 @@ export interface Movimentacao {
 }
 
 export interface FinanceiroState {
+  unidades: Unidade[];
   orcamentos: Orcamento[];
   compras: Compra[];
   itens: ItemEstoque[];

@@ -5,6 +5,7 @@ import { fmtDataBR, hoje } from "../lib/tempo";
 import { Alertas } from "./Alertas";
 
 interface Props {
+  unidadeId: string;
   compras: Compra[];
   itens: ItemEstoque[];
   diaCorte: number;
@@ -22,6 +23,7 @@ const STATUS_LABEL: Record<StatusCompra, string> = {
 };
 
 export function ComprasView({
+  unidadeId,
   compras,
   itens,
   diaCorte,
@@ -56,6 +58,7 @@ export function ComprasView({
     setSalvando(true);
     try {
       const compra = await onNovaCompra({
+        unidadeId,
         data,
         descricao: descricao.trim(),
         fornecedor: fornecedor.trim(),
