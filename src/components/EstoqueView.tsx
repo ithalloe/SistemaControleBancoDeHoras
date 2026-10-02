@@ -147,90 +147,94 @@ export function EstoqueView({
 
       <div className="card">
         <h2>Itens em estoque</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Categoria</th>
-              <th>Quantidade</th>
-              <th>Mínimo</th>
-              <th>Movimentar</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {itens.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={6} className="muted">
-                  Nenhum item cadastrado.
-                </td>
+                <th>Item</th>
+                <th>Categoria</th>
+                <th>Quantidade</th>
+                <th>Mínimo</th>
+                <th>Movimentar</th>
+                <th></th>
               </tr>
-            ) : (
-              itens.map((i) => (
-                <tr key={i.id} className={estoqueBaixo(i) ? "linha-alerta" : ""}>
-                  <td>
-                    {i.nome}
-                    {estoqueBaixo(i) && <span className="badge warn"> baixo</span>}
-                  </td>
-                  <td>{i.categoria || "-"}</td>
-                  <td>
-                    {i.quantidade} {i.unidade}
-                  </td>
-                  <td>{i.estoqueMin}</td>
-                  <td>
-                    <button className="btn ghost small" onClick={() => mover(i, "entrada")}>
-                      + Entrada
-                    </button>{" "}
-                    <button className="btn ghost small" onClick={() => mover(i, "saida")}>
-                      − Saída
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn danger small" onClick={() => onExcluirItem(i.id)}>
-                      Excluir
-                    </button>
+            </thead>
+            <tbody>
+              {itens.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="muted">
+                    Nenhum item cadastrado.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                itens.map((i) => (
+                  <tr key={i.id} className={estoqueBaixo(i) ? "linha-alerta" : ""}>
+                    <td>
+                      {i.nome}
+                      {estoqueBaixo(i) && <span className="badge warn"> baixo</span>}
+                    </td>
+                    <td>{i.categoria || "-"}</td>
+                    <td>
+                      {i.quantidade} {i.unidade}
+                    </td>
+                    <td>{i.estoqueMin}</td>
+                    <td>
+                      <button className="btn ghost small" onClick={() => mover(i, "entrada")}>
+                        + Entrada
+                      </button>{" "}
+                      <button className="btn ghost small" onClick={() => mover(i, "saida")}>
+                        − Saída
+                      </button>
+                    </td>
+                    <td>
+                      <button className="btn danger small" onClick={() => onExcluirItem(i.id)}>
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="card">
         <h2>Últimas movimentações</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Item</th>
-              <th>Tipo</th>
-              <th>Qtd</th>
-              <th>Motivo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {movsOrdenadas.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={5} className="muted">
-                  Sem movimentações.
-                </td>
+                <th>Data</th>
+                <th>Item</th>
+                <th>Tipo</th>
+                <th>Qtd</th>
+                <th>Motivo</th>
               </tr>
-            ) : (
-              movsOrdenadas.map((m) => (
-                <tr key={m.id}>
-                  <td>{fmtDataBR(m.data)}</td>
-                  <td>{nomePorId.get(m.itemId) ?? "(removido)"}</td>
-                  <td className={m.tipo === "entrada" ? "pos" : "neg"}>
-                    {m.tipo === "entrada" ? "Entrada" : "Saída"}
+            </thead>
+            <tbody>
+              {movsOrdenadas.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="muted">
+                    Sem movimentações.
                   </td>
-                  <td>{m.quantidade}</td>
-                  <td>{m.motivo || "-"}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                movsOrdenadas.map((m) => (
+                  <tr key={m.id}>
+                    <td>{fmtDataBR(m.data)}</td>
+                    <td>{nomePorId.get(m.itemId) ?? "(removido)"}</td>
+                    <td className={m.tipo === "entrada" ? "pos" : "neg"}>
+                      {m.tipo === "entrada" ? "Entrada" : "Saída"}
+                    </td>
+                    <td>{m.quantidade}</td>
+                    <td>{m.motivo || "-"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

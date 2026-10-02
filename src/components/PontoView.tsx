@@ -156,53 +156,55 @@ export function PontoView({ config, pontos, onSalvar, onRemover }: Props) {
 
       <div className="card">
         <h2>Registros de ponto</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Entrada</th>
-              <th>Saída</th>
-              <th>Almoço</th>
-              <th>Trabalhado</th>
-              <th>Extra</th>
-              <th>Saldo</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {pontosOrdenados.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={9} className="muted">
-                  Nenhum registro ainda.
-                </td>
+                <th>Data</th>
+                <th>Entrada</th>
+                <th>Saída</th>
+                <th>Almoço</th>
+                <th>Trabalhado</th>
+                <th>Extra</th>
+                <th>Saldo</th>
+                <th>Status</th>
+                <th></th>
               </tr>
-            ) : (
-              pontosOrdenados.map((p) => {
-                const st = statusPonto(p, config, pontos);
-                return (
-                  <tr key={p.id}>
-                    <td>{fmtDataBR(p.data)}</td>
-                    <td>{p.entrada}</td>
-                    <td>{p.saida}</td>
-                    <td>{p.almocoMin}min</td>
-                    <td>{fmtDur(p.trabalhadoMin)}</td>
-                    <td>{fmtDur(p.extraMin)}</td>
-                    <td className={p.saldoMin >= 0 ? "pos" : "neg"}>{fmtDur(p.saldoMin)}</td>
-                    <td>
-                      <span className={`badge ${st.cls}`}>{st.txt}</span>
-                    </td>
-                    <td>
-                      <button className="btn danger small" onClick={() => remover(p.id)}>
-                        Excluir
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pontosOrdenados.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="muted">
+                    Nenhum registro ainda.
+                  </td>
+                </tr>
+              ) : (
+                pontosOrdenados.map((p) => {
+                  const st = statusPonto(p, config, pontos);
+                  return (
+                    <tr key={p.id}>
+                      <td>{fmtDataBR(p.data)}</td>
+                      <td>{p.entrada}</td>
+                      <td>{p.saida}</td>
+                      <td>{p.almocoMin}min</td>
+                      <td>{fmtDur(p.trabalhadoMin)}</td>
+                      <td>{fmtDur(p.extraMin)}</td>
+                      <td className={p.saldoMin >= 0 ? "pos" : "neg"}>{fmtDur(p.saldoMin)}</td>
+                      <td>
+                        <span className={`badge ${st.cls}`}>{st.txt}</span>
+                      </td>
+                      <td>
+                        <button className="btn danger small" onClick={() => remover(p.id)}>
+                          Excluir
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

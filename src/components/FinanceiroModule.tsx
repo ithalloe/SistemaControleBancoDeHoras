@@ -228,36 +228,38 @@ function UnidadesView({
 
       <div className="card">
         <h2>Unidades cadastradas</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CNPJ</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {unidades.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={3} className="muted">
-                  Nenhuma unidade cadastrada.
-                </td>
+                <th>Nome</th>
+                <th>CNPJ</th>
+                <th></th>
               </tr>
-            ) : (
-              unidades.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.nome}</td>
-                  <td>{u.cnpj || "-"}</td>
-                  <td>
-                    <button className="btn danger small" onClick={() => remover(u)}>
-                      Excluir
-                    </button>
+            </thead>
+            <tbody>
+              {unidades.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="muted">
+                    Nenhuma unidade cadastrada.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                unidades.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.nome}</td>
+                    <td>{u.cnpj || "-"}</td>
+                    <td>
+                      <button className="btn danger small" onClick={() => remover(u)}>
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

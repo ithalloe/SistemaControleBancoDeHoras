@@ -39,36 +39,38 @@ export function BancoView({ config, pontos }: Props) {
 
       <div className="card">
         <h2>Histórico e saldo acumulado</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Trabalhado</th>
-              <th>Meta</th>
-              <th>Saldo do dia</th>
-              <th>Saldo acumulado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {linhas.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={5} className="muted">
-                  Sem registros.
-                </td>
+                <th>Data</th>
+                <th>Trabalhado</th>
+                <th>Meta</th>
+                <th>Saldo do dia</th>
+                <th>Saldo acumulado</th>
               </tr>
-            ) : (
-              linhas.map((l) => (
-                <tr key={l.id}>
-                  <td>{fmtDataBR(l.data)}</td>
-                  <td>{fmtDur(l.trabalhadoMin)}</td>
-                  <td>{fmtDur(config.metaMin)}</td>
-                  <td className={l.saldoMin >= 0 ? "pos" : "neg"}>{fmtDur(l.saldoMin)}</td>
-                  <td className={l.acumulado >= 0 ? "pos" : "neg"}>{fmtDur(l.acumulado)}</td>
+            </thead>
+            <tbody>
+              {linhas.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="muted">
+                    Sem registros.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                linhas.map((l) => (
+                  <tr key={l.id}>
+                    <td>{fmtDataBR(l.data)}</td>
+                    <td>{fmtDur(l.trabalhadoMin)}</td>
+                    <td>{fmtDur(config.metaMin)}</td>
+                    <td className={l.saldoMin >= 0 ? "pos" : "neg"}>{fmtDur(l.saldoMin)}</td>
+                    <td className={l.acumulado >= 0 ? "pos" : "neg"}>{fmtDur(l.acumulado)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

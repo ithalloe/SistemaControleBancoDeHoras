@@ -513,3 +513,113 @@ body {
   color: #fff;
   border-color: var(--primary);
 }
+
+/* ===================== Responsividade / Mobile ===================== */
+
+/* Wrapper que torna tabelas largas roláveis na horizontal, sem quebrar o layout */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap .table {
+  min-width: 520px; /* garante que as colunas não espremam; rola se faltar espaço */
+}
+
+/* Rolagem horizontal suave para barras de navegação em telas pequenas */
+.tabs,
+.subtabs,
+.unidade-bar {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  /* Aproveita melhor a largura da tela */
+  .container {
+    padding: 14px;
+  }
+  .card {
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* Topbar empilhada e organizada */
+  .topbar {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .brand h1 {
+    font-size: 16px;
+  }
+
+  /* Abas principais e sub-abas: rolagem horizontal em vez de quebrar bagunçado */
+  .tabs,
+  .subtabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Seletor de unidade também rola na horizontal */
+  .unidade-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  /* Área do usuário ocupa a linha inteira, botão sair acessível */
+  .topbar .user-area {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Campos em coluna única e inputs sem zoom automático no iOS (>=16px) */
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .field {
+    min-width: 0;
+    width: 100%;
+  }
+  .field input,
+  .field select {
+    font-size: 16px;
+  }
+
+  /* Painéis de estatística um pouco mais compactos */
+  .stat-value {
+    font-size: 24px;
+  }
+
+  /* Botões com área de toque mais confortável */
+  .btn {
+    padding: 11px 16px;
+  }
+  .btn.small {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* Ações ocupam a largura e botões crescem para facilitar o toque */
+  .actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* Telas muito estreitas (celulares pequenos) */
+@media (max-width: 380px) {
+  .brand .subtitle {
+    display: none;
+  }
+}

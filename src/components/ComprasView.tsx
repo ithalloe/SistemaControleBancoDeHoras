@@ -192,56 +192,58 @@ export function ComprasView({
 
       <div className="card">
         <h2>Compras</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-              <th>Fornecedor</th>
-              <th>Categoria</th>
-              <th>Valor</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {comprasOrdenadas.length === 0 ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={7} className="muted">
-                  Nenhuma compra registrada.
-                </td>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Fornecedor</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th></th>
               </tr>
-            ) : (
-              comprasOrdenadas.map((c) => (
-                <tr key={c.id} className={c.status === "cancelada" ? "muted" : ""}>
-                  <td>{fmtDataBR(c.data)}</td>
-                  <td>{c.descricao}</td>
-                  <td>{c.fornecedor || "-"}</td>
-                  <td>{c.categoria || "-"}</td>
-                  <td>{fmtBRL(c.valor)}</td>
-                  <td>
-                    <select
-                      className="status-select"
-                      value={c.status}
-                      onChange={(e) => onMudarStatus(c.id, e.target.value as StatusCompra)}
-                    >
-                      {(Object.keys(STATUS_LABEL) as StatusCompra[]).map((s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <button className="btn danger small" onClick={() => onExcluir(c.id)}>
-                      Excluir
-                    </button>
+            </thead>
+            <tbody>
+              {comprasOrdenadas.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="muted">
+                    Nenhuma compra registrada.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                comprasOrdenadas.map((c) => (
+                  <tr key={c.id} className={c.status === "cancelada" ? "muted" : ""}>
+                    <td>{fmtDataBR(c.data)}</td>
+                    <td>{c.descricao}</td>
+                    <td>{c.fornecedor || "-"}</td>
+                    <td>{c.categoria || "-"}</td>
+                    <td>{fmtBRL(c.valor)}</td>
+                    <td>
+                      <select
+                        className="status-select"
+                        value={c.status}
+                        onChange={(e) => onMudarStatus(c.id, e.target.value as StatusCompra)}
+                      >
+                        {(Object.keys(STATUS_LABEL) as StatusCompra[]).map((s) => (
+                          <option key={s} value={s}>
+                            {STATUS_LABEL[s]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button className="btn danger small" onClick={() => onExcluir(c.id)}>
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
