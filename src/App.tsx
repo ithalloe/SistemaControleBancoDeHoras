@@ -4,15 +4,17 @@ import { PontoView } from "./components/PontoView";
 import { BancoView } from "./components/BancoView";
 import { DemandasView } from "./components/DemandasView";
 import { ConfigView } from "./components/ConfigView";
+import { FinanceiroModule } from "./components/FinanceiroModule";
 import { useAuth } from "./auth/context";
 import { LoginView } from "./auth/LoginView";
 
-type View = "ponto" | "banco" | "demandas" | "config";
+type View = "ponto" | "banco" | "demandas" | "financeiro" | "config";
 
 const ABAS: { view: View; label: string }[] = [
   { view: "ponto", label: "Ponto do dia" },
   { view: "banco", label: "Banco de horas" },
   { view: "demandas", label: "Demandas" },
+  { view: "financeiro", label: "Financeiro" },
   { view: "config", label: "Config" },
 ];
 
@@ -112,6 +114,7 @@ function AppAutenticado() {
                 onRemover={removerDemanda}
               />
             )}
+            {view === "financeiro" && <FinanceiroModule diaCorte={state.config.diaCorteCompra} />}
             {view === "config" && (
               <ConfigView config={state.config} state={state} onSalvar={salvarConfig} />
             )}

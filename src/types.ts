@@ -5,6 +5,9 @@ export interface Config {
   maxExtraMin: number;
   /** Descanso mínimo entre jornadas em horas (CLT: 11) */
   interjornadaH: number;
+  /** Dia do mês a partir do qual a compra é bloqueada (padrão 24).
+   *  Ex.: 24 => compras permitidas do dia 1 ao 23. */
+  diaCorteCompra: number;
 }
 
 export interface Ponto {
@@ -47,6 +50,61 @@ export interface AppState {
   demandas: Demanda[];
 }
 
+/* ===================== Financeiro + Estoque ===================== */
+
+export interface Orcamento {
+  id: string;
+  /** Mês de competência, ISO YYYY-MM-DD (primeiro dia do mês) */
+  competencia: string;
+  valor: number;
+  obs: string;
+}
+
+export type StatusCompra = "solicitada" | "comprada" | "recebida" | "cancelada";
+
+export interface Compra {
+  id: string;
+  /** ISO YYYY-MM-DD */
+  data: string;
+  descricao: string;
+  fornecedor: string;
+  categoria: string;
+  valor: number;
+  quantidade: number;
+  notaFiscal: string;
+  status: StatusCompra;
+  /** item de estoque abastecido por esta compra (ou null) */
+  itemEstoqueId: string | null;
+}
+
+export interface ItemEstoque {
+  id: string;
+  nome: string;
+  categoria: string;
+  unidade: string;
+  quantidade: number;
+  estoqueMin: number;
+}
+
+export type TipoMovimentacao = "entrada" | "saida";
+
+export interface Movimentacao {
+  id: string;
+  itemId: string;
+  tipo: TipoMovimentacao;
+  quantidade: number;
+  motivo: string;
+  /** ISO YYYY-MM-DD */
+  data: string;
+}
+
+export interface FinanceiroState {
+  orcamentos: Orcamento[];
+  compras: Compra[];
+  itens: ItemEstoque[];
+  movimentacoes: Movimentacao[];
+}
+
 export type TipoAlerta = "err" | "warn" | "ok";
 
 export interface Alerta {
@@ -67,4 +125,5 @@ export const defaultConfig: Config = {
   metaMin: 8 * 60 + 48, // 08:48 -> 44h semanais
   maxExtraMin: 120, // 2h/dia
   interjornadaH: 11,
+  diaCorteCompra: 24, // compras permitidas do dia 1 ao 23
 };

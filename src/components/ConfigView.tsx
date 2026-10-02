@@ -12,6 +12,7 @@ export function ConfigView({ config, state, onSalvar }: Props) {
   const [meta, setMeta] = useState<string>(minToHHMM(config.metaMin));
   const [maxExtra, setMaxExtra] = useState<number>(config.maxExtraMin);
   const [inter, setInter] = useState<number>(config.interjornadaH);
+  const [diaCorte, setDiaCorte] = useState<number>(config.diaCorteCompra);
   const [salvando, setSalvando] = useState(false);
 
   async function salvar() {
@@ -20,6 +21,7 @@ export function ConfigView({ config, state, onSalvar }: Props) {
       metaMin: metaMin ?? config.metaMin,
       maxExtraMin: Number.isNaN(maxExtra) ? config.maxExtraMin : maxExtra,
       interjornadaH: Number.isNaN(inter) ? config.interjornadaH : inter,
+      diaCorteCompra: Number.isNaN(diaCorte) ? config.diaCorteCompra : diaCorte,
     };
     setSalvando(true);
     try {
@@ -71,6 +73,17 @@ export function ConfigView({ config, state, onSalvar }: Props) {
               onChange={(e) => setInter(parseInt(e.target.value, 10))}
             />
           </div>
+          <div className="field">
+            <label>Dia de corte da compra</label>
+            <input
+              type="number"
+              min={1}
+              max={31}
+              step={1}
+              value={diaCorte}
+              onChange={(e) => setDiaCorte(parseInt(e.target.value, 10))}
+            />
+          </div>
         </div>
         <div className="actions">
           <button className="btn primary" onClick={salvar} disabled={salvando}>
@@ -79,7 +92,8 @@ export function ConfigView({ config, state, onSalvar }: Props) {
         </div>
         <p className="muted small">
           Padrão CLT: máx. 2h extras/dia e 11h de descanso entre jornadas. A meta 08:48 corresponde
-          a 44h semanais (entrada 07:30, saída 17:18, 1h de almoço).
+          a 44h semanais (entrada 07:30, saída 17:18, 1h de almoço). A janela de compra fecha a
+          partir do dia de corte (padrão 24): compras só do dia 1 ao {diaCorte - 1}.
         </p>
       </div>
 

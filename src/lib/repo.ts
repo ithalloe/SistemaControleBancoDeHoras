@@ -37,6 +37,7 @@ interface ConfigRow {
   meta_min: number;
   max_extra_min: number;
   interjornada_h: number;
+  dia_corte_compra: number | null;
 }
 
 const PRIORIDADES: Prioridade[] = ["alta", "media", "baixa"];
@@ -99,6 +100,7 @@ export async function carregarEstadoRemoto(): Promise<AppState> {
         metaMin: configRow.meta_min,
         maxExtraMin: configRow.max_extra_min,
         interjornadaH: configRow.interjornada_h,
+        diaCorteCompra: configRow.dia_corte_compra ?? defaultConfig.diaCorteCompra,
       }
     : { ...defaultConfig };
 
@@ -214,6 +216,7 @@ export async function salvarConfigRemoto(config: Config): Promise<void> {
       meta_min: config.metaMin,
       max_extra_min: config.maxExtraMin,
       interjornada_h: config.interjornadaH,
+      dia_corte_compra: config.diaCorteCompra,
     },
     { onConflict: "user_id" }
   );
