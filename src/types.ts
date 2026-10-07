@@ -120,6 +120,30 @@ export interface FinanceiroState {
   movimentacoes: Movimentacao[];
 }
 
+/* ===================== Câmeras ===================== */
+
+export type StatusCamera = "ativa" | "inativa" | "manutencao" | "defeito";
+export type TipoCamera = "interna" | "externa";
+
+export interface Camera {
+  id: string;
+  /** Nome/identificação da câmera (ex.: "CAM-01", "Entrada principal") */
+  nome: string;
+  /** Região/local no ambiente escolar (ex.: "Pátio", "Bloco A - Corredor") */
+  regiao: string;
+  tipo: TipoCamera;
+  status: StatusCamera;
+  /** O que a câmera cobre (ex.: "Portão de entrada e recepção") */
+  cobertura: string;
+  obs: string;
+  /** ISO YYYY-MM-DD de criação do registro */
+  criadoEm: string;
+}
+
+export interface CamerasState {
+  cameras: Camera[];
+}
+
 export type TipoAlerta = "err" | "warn" | "ok";
 
 export interface Alerta {

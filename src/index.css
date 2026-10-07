@@ -484,7 +484,29 @@ body {
 }
 
 .linha-alerta {
+  background: rgba(255, 92, 108, 0.08);
+}
+.linha-aviso {
   background: rgba(255, 182, 72, 0.07);
+}
+
+/* ===================== Câmeras ===================== */
+.resumo-cameras {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.resumo-cameras .badge {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+}
+.resumo-cameras .badge.ok,
+.resumo-cameras .badge.warn,
+.resumo-cameras .badge.err {
+  border-color: transparent;
 }
 
 /* ===================== Seletor de unidade (CNPJ) ===================== */
