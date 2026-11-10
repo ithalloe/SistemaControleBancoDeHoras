@@ -9,6 +9,7 @@ interface CameraRow {
   id: string;
   nome: string;
   regiao: string;
+  dvr: string;
   tipo: string;
   status: string;
   cobertura: string;
@@ -24,6 +25,7 @@ function rowToCamera(r: CameraRow): Camera {
     id: r.id,
     nome: r.nome,
     regiao: r.regiao,
+    dvr: r.dvr ?? "",
     tipo: TIPOS.includes(r.tipo as TipoCamera) ? (r.tipo as TipoCamera) : "interna",
     status: STATUS.includes(r.status as StatusCamera) ? (r.status as StatusCamera) : "ativa",
     cobertura: r.cobertura,
@@ -45,6 +47,7 @@ export async function carregarCameras(): Promise<Camera[]> {
   const { data, error } = await supabase
     .from("cameras")
     .select("*")
+    .order("dvr", { ascending: true })
     .order("regiao", { ascending: true })
     .order("nome", { ascending: true });
   if (error) throw error;
@@ -62,6 +65,7 @@ export async function adicionarCamera(c: Omit<Camera, "id" | "criadoEm">): Promi
       user_id,
       nome: c.nome,
       regiao: c.regiao,
+      dvr: c.dvr,
       tipo: c.tipo,
       status: c.status,
       cobertura: c.cobertura,
@@ -82,6 +86,7 @@ export async function atualizarCamera(c: Camera): Promise<Camera> {
     .update({
       nome: c.nome,
       regiao: c.regiao,
+      dvr: c.dvr,
       tipo: c.tipo,
       status: c.status,
       cobertura: c.cobertura,

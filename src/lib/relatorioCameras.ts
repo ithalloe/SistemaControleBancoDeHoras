@@ -23,17 +23,28 @@ function esc(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/** Agrupa câmeras por região (mantém ordem alfabética das regiões). */
-function agruparPorRegiao(cameras: Camera[]): Map<string, Camera[]> {
-  const grupos = new Map<string, Camera[]>();
+/**
+ * Agrupa câmeras por DVR (nível 1) e, dentro de cada DVR, por região (nível 2).
+ * Mantém ordem alfabética em ambos os níveis.
+ */
+function agruparPorDvr(cameras: Camera[]): Map<string, Map<string, Camera[]>> {
+  const grupos = new Map<string, Map<string, Camera[]>>();
   const ordenadas = cameras
     .slice()
-    .sort((a, b) => a.regiao.localeCompare(b.regiao) || a.nome.localeCompare(b.nome));
+    .sort(
+      (a, b) =>
+        a.dvr.localeCompare(b.dvr) ||
+        a.regiao.localeCompare(b.regiao) ||
+        a.nome.localeCompare(b.nome)
+    );
   for (const c of ordenadas) {
-    const chave = c.regiao.trim() || "(Sem região)";
-    const lista = grupos.get(chave) ?? [];
+    const chaveDvr = c.dvr.trim() || "(Sem DVR)";
+    const chaveRegiao = c.regiao.trim() || "(Sem região)";
+    if (!grupos.has(chaveDvr)) grupos.set(chaveDvr, new Map());
+    const regioes = grupos.get(chaveDvr)!;
+    const lista = regioes.get(chaveRegiao) ?? [];
     lista.push(c);
-    grupos.set(chave, lista);
+    regioes.set(chaveRegiao, lista);
   }
   return grupos;
 }
@@ -53,7 +64,7 @@ function contarPorStatus(cameras: Camera[]): Record<StatusCamera, number> {
 function montarHtml(cameras: Camera[]): string {
   const total = cameras.length;
   const contagem = contarPorStatus(cameras);
-  const grupos = agruparPorRegiao(cameras);
+  const grupos = agruparPorDvr(cameras);
   const geradoEm = fmtDataBR(new Date().toISOString().slice(0, 10));
 
   const resumo = `
@@ -66,31 +77,41 @@ function montarHtml(cameras: Camera[]): string {
     </div>`;
 
   let secoes = "";
-  for (const [regiao, lista] of grupos) {
-    const linhas = lista
-      .map(
-        (c) => `
-        <tr class="st-${c.status}">
-          <td>${esc(c.nome)}</td>
-          <td>${LABEL_TIPO[c.tipo]}</td>
-          <td>${LABEL_STATUS[c.status]}</td>
-          <td>${esc(c.cobertura) || "-"}</td>
-          <td>${esc(c.obs) || "-"}</td>
-        </tr>`
-      )
-      .join("");
-    secoes += `
-      <h2>${esc(regiao)} <span class="cnt">(${lista.length})</span></h2>
-      <table>
-        <thead>
-          <tr><th>Câmera</th><th>Tipo</th><th>Status</th><th>Cobertura</th><th>Observações</th></tr>
-        </thead>
-        <tbody>${linhas}</tbody>
-      </table>`;
-  }
 
   if (total === 0) {
     secoes = `<p class="vazio">Nenhuma câmera cadastrada.</p>`;
+  } else {
+    for (const [dvrNome, regioes] of grupos) {
+      // Conta total do DVR
+      let totalDvr = 0;
+      for (const lista of regioes.values()) totalDvr += lista.length;
+
+      secoes += `<h2 class="dvr-titulo">${esc(dvrNome)} <span class="cnt">(${totalDvr} câmera${totalDvr !== 1 ? "s" : ""})</span></h2>`;
+
+      for (const [regiao, lista] of regioes) {
+        const linhas = lista
+          .map(
+            (c) => `
+            <tr class="st-${c.status}">
+              <td>${esc(c.nome)}</td>
+              <td>${LABEL_TIPO[c.tipo]}</td>
+              <td>${LABEL_STATUS[c.status]}</td>
+              <td>${esc(c.cobertura) || "-"}</td>
+              <td>${esc(c.obs) || "-"}</td>
+            </tr>`
+          )
+          .join("");
+
+        secoes += `
+          <h3>${esc(regiao)} <span class="cnt">(${lista.length})</span></h3>
+          <table>
+            <thead>
+              <tr><th>Câmera</th><th>Tipo</th><th>Status</th><th>Cobertura</th><th>Observações</th></tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+          </table>`;
+      }
+    }
   }
 
   return `<!doctype html>
@@ -112,9 +133,14 @@ function montarHtml(cameras: Camera[]): string {
   .box.ok { border-color: #1a7f37; } .box.ok .num { color: #1a7f37; }
   .box.warn { border-color: #b26a00; } .box.warn .num { color: #b26a00; }
   .box.err { border-color: #c62828; } .box.err .num { color: #c62828; }
-  h2 { font-size: 14px; margin: 22px 0 8px; border-left: 4px solid #333; padding-left: 8px; }
-  h2 .cnt { color: #888; font-weight: normal; font-size: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  h2.dvr-titulo {
+    font-size: 15px; margin: 28px 0 6px;
+    border-left: 5px solid #333; padding: 4px 0 4px 10px;
+    background: #f7f7f7; page-break-after: avoid;
+  }
+  h3 { font-size: 13px; margin: 14px 0 6px; border-left: 3px solid #999; padding-left: 8px; }
+  h2 .cnt, h3 .cnt { color: #888; font-weight: normal; font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
   th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
   th { background: #f3f3f3; }
   tr.st-defeito td { background: #fdecea; }
@@ -151,7 +177,6 @@ export function gerarRelatorioPdf(cameras: Camera[]): void {
   win.document.open();
   win.document.write(html);
   win.document.close();
-  // aguarda renderizar antes de imprimir
   win.focus();
   win.onload = () => {
     win.print();

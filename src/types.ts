@@ -131,6 +131,8 @@ export interface Camera {
   nome: string;
   /** Região/local no ambiente escolar (ex.: "Pátio", "Bloco A - Corredor") */
   regiao: string;
+  /** DVR ao qual a câmera está conectada (texto livre, ex.: "DVR 1", "DVR Bloco B") */
+  dvr: string;
   tipo: TipoCamera;
   status: StatusCamera;
   /** O que a câmera cobre (ex.: "Portão de entrada e recepção") */

@@ -37,7 +37,10 @@ export function useCameras() {
     const salva = await adicionarCamera(c);
     setCameras((prev) =>
       [...prev, salva].sort(
-        (a, b) => a.regiao.localeCompare(b.regiao) || a.nome.localeCompare(b.nome)
+        (a, b) =>
+          a.dvr.localeCompare(b.dvr) ||
+          a.regiao.localeCompare(b.regiao) ||
+          a.nome.localeCompare(b.nome)
       )
     );
     return salva;
@@ -48,7 +51,12 @@ export function useCameras() {
     setCameras((prev) =>
       prev
         .map((x) => (x.id === salva.id ? salva : x))
-        .sort((a, b) => a.regiao.localeCompare(b.regiao) || a.nome.localeCompare(b.nome))
+        .sort(
+          (a, b) =>
+            a.dvr.localeCompare(b.dvr) ||
+            a.regiao.localeCompare(b.regiao) ||
+            a.nome.localeCompare(b.nome)
+        )
     );
     return salva;
   }, []);
