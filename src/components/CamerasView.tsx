@@ -36,6 +36,8 @@ export function CamerasView({ cameras, onCriar, onEditar, onMudarStatus, onExclu
   const [salvando, setSalvando] = useState(false);
   const [filtroDvr, setFiltroDvr] = useState("");
   const [filtroRegiao, setFiltroRegiao] = useState("");
+  /** DVR selecionado para geração de relatório ("" = todos) */
+  const [relatorioDvr, setRelatorioDvr] = useState("");
   /** DVRs colapsados (escondidos) */
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
 
@@ -266,13 +268,27 @@ export function CamerasView({ cameras, onCriar, onEditar, onMudarStatus, onExclu
       <div className="card">
         <div className="row" style={{ alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Câmeras cadastradas</h2>
-          <button
-            className="btn primary"
-            onClick={() => gerarRelatorioPdf(cameras)}
-            disabled={cameras.length === 0}
-          >
-            Gerar relatório (PDF)
-          </button>
+          <div className="row" style={{ gap: 8, alignItems: "center" }}>
+            {dvrs.length > 0 && (
+              <select
+                value={relatorioDvr}
+                onChange={(e) => setRelatorioDvr(e.target.value)}
+                style={{ minWidth: 120 }}
+              >
+                <option value="">Todos os DVRs</option>
+                {dvrs.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            )}
+            <button
+              className="btn primary"
+              onClick={() => gerarRelatorioPdf(cameras, relatorioDvr || undefined)}
+              disabled={cameras.length === 0}
+            >
+              Gerar relatório (PDF)
+            </button>
+          </div>
         </div>
 
         {/* Resumo de status */}

@@ -166,9 +166,13 @@ function montarHtml(cameras: Camera[]): string {
 /**
  * Abre uma janela com o relatório formatado e dispara a impressão,
  * permitindo ao usuário "Salvar como PDF" pelo diálogo do navegador.
+ *
+ * @param cameras - lista completa de câmeras
+ * @param dvr     - se informado, filtra apenas as câmeras desse DVR
  */
-export function gerarRelatorioPdf(cameras: Camera[]): void {
-  const html = montarHtml(cameras);
+export function gerarRelatorioPdf(cameras: Camera[], dvr?: string): void {
+  const lista = dvr ? cameras.filter((c) => c.dvr.trim() === dvr) : cameras;
+  const html = montarHtml(lista);
   const win = window.open("", "_blank", "width=900,height=700");
   if (!win) {
     alert("Não foi possível abrir a janela do relatório. Verifique o bloqueador de pop-ups.");
